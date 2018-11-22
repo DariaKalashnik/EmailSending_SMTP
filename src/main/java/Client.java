@@ -3,6 +3,11 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import java.io.*;
 import java.net.InetAddress;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Properties;
 
 public class Client {
@@ -97,7 +102,8 @@ public class Client {
             send(reader, writer, "MAIL FROM:<" + BuildConfig.SENDER + ">");
             send(reader, writer, "RCPT TO:<" + BuildConfig.RECIPIENT + ">");
             send(reader, writer, "DATA");
-            //TODO: add date
+
+            send(reader, writer, "Message sent at: " + getMessageSentTime());
             send(reader, writer, "Subject: Networks II");
             send(reader, writer, "From: Daria Kalashnikova - " + BuildConfig.SENDER);
             send(reader, writer, "Hi, Check the Project I made for Networks class!");
@@ -115,6 +121,16 @@ public class Client {
             }
         }
 
+    }
+
+    private String getMessageSentTime(){
+        String dateAndTime;
+        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        Date date = new Date();
+
+        dateAndTime = dateFormat.format(date);
+
+        return dateAndTime;
     }
 
     private void send(BufferedReader in, PrintWriter out, String string) {
@@ -190,6 +206,7 @@ public class Client {
     }*/
 
     public static void main(String[] args) {
+
         new Client();
     }
 }

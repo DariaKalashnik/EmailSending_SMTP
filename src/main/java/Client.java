@@ -7,7 +7,6 @@ import java.util.Properties;
 
 public class Client {
 
-    //private SSLSocket socket;
     private Socket socket;
     private BufferedReader reader;
     private PrintWriter writer;
@@ -15,6 +14,7 @@ public class Client {
     private int portNumber;
     private String email;
     private String password;
+    private String domain;
 
     private Client() {
         clientStart();
@@ -32,15 +32,15 @@ public class Client {
         //Setting up configurations for the email connection to the Google SMTP server using SSL
         //properties.put("mail.smtp.host", "smtp.gmail.com");
         //properties.put("mail.smtp.port", portNumber);
+         /*System.setProperty("mail.smtp.ssl.enable", "true");
+           System.setProperty("mail.smtp.auth", "true");
+           System.setProperty("mail.smtp.auth.plain.enable", "true");
+           System.setProperty("mail.smtp.socketFactory.fallback", "true");*/
 
         try {
             //socket = (SSLSocket) SSLSocketFactory.getDefault().createSocket(hostName, portNumber);
             socket = new Socket(hostName, portNumber);
-            /*System.setProperty("mail.smtp.ssl.enable", "true");
-            System.setProperty("mail.smtp.auth", "true");
-            System.setProperty("mail.smtp.auth.plain.enable", "true");
-            System.setProperty("mail.smtp.socketFactory.fallback", "true");
-*/
+
             System.out.println("Connected...\n");
 
             clientService();
@@ -75,6 +75,7 @@ public class Client {
             portNumber = Integer.parseInt(properties.getProperty("port"));
             email = properties.getProperty("user");
             password = properties.getProperty("password");
+            domain = properties.getProperty("domain");
 
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -100,7 +101,7 @@ public class Client {
 
             send(reader, writer, "HELO  " + hostName);
 
-            send(reader, writer, "EHLO  " + hostName);
+            send(reader, writer, "EHLO  " + domain);
 
             System.out.println(reader.readLine());
             System.out.println(reader.readLine());
@@ -112,46 +113,26 @@ public class Client {
 
             send(reader, writer, password);
 
-            send(reader, writer, "MAIL FROM:<daria@network2.hu>");
+            send(reader, writer, "MAIL FROM:" + BuildConfig.SENDER);
 
-            send(reader, writer, "RCPT TO:<vivaldiskripkaguy@gmail.com>");
+            send(reader, writer, "RCPT TO:" + BuildConfig.RECIPIENT);
 
             send(reader, writer, "DATA");
 
-            //Scanner sc = new Scanner(System.in);
+            String message = "Subject: Networks II\n" +
+                    "From: Daria Kalashnikova - " + BuildConfig.SENDER +
+                    "Hi, Check the Project I made for Networks class!\n" +
+                    "Message sent at: " + getMessageSentTime();
 
-            //System.out.println("Please enter Email subject and body");
 
-            String message = "Hi";
-            writer.write(message + "\r\n");
-            writer.flush();
-
-            System.out.println(BuildConfig.CLIENT_ARROW + message + "\r\n");
+            writer.write(message);
+            System.out.println(message);
 
             send(reader, writer, ".");
 
-           /* while (true) {
-                String userInput = sc.nextLine();
-
-                if (userInput.equals(".")) {
-                    break;
-                }
-
-                writer.println(userInput);
-            }*/
-
-
             send(reader, writer, "QUIT");
 
-           /* send(reader, writer, "Subject: Networks II");
-
-            send(reader, writer, "From: Daria Kalashnikova - " + BuildConfig.SENDER);
-
-            send(reader, writer, "Hi, Check the Project I made for Networks class!");
-
-            send(reader, writer, "Message sent at: " + getMessageSentTime());
-*/
-
+            socket.close();
 
         } catch (Exception e) {
             System.out.println("ERROR: " + e);
@@ -193,7 +174,6 @@ public class Client {
 
 
     public static void main(String[] args) {
-
         new Client();
     }
 }

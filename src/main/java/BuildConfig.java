@@ -1,12 +1,8 @@
 class BuildConfig {
 
-    //static String HOST = "smtp.gmail.com";
+    static String SENDER = "daria@network2.hu";
 
-    //static int PORT = 465;
-
-    static String SENDER = "vivaldiskripkaguy@gmail.com";
-
-    static String RECIPIENT  = "dashavinni0@gmail.com";
+    static String RECIPIENT  = "vivaldiskripkaguy@gmail.com";
 
     static String CLIENT_ARROW = "CLIENT ----> ";
 

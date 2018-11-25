@@ -13,10 +13,10 @@ import static utils.Utils.send;
 public class Client {
 
     private Socket socket;
-    private BufferedReader reader;
-    private PrintWriter writer;
-    private String hostName, email, password, domain;
-    private int portNumber;
+    private BufferedReader input;
+    private PrintWriter output;
+    private String host, email, password, domain;
+    private int port;
 
     private Client() {
         clientStart();
@@ -26,21 +26,21 @@ public class Client {
 
         getProperties();
 
-        System.out.println("models.Server IP: " + hostName);
-        System.out.println("models.Server port: " + portNumber);
+        System.out.println("models.Server IP: " + host);
+        System.out.println("models.Server port: " + port);
         System.out.println("---------------------------------");
 
         //Setting up configurations for the email connection to the Google SMTP server using SSL
         //properties.put("mail.smtp.host", "smtp.gmail.com");
-        //properties.put("mail.smtp.port", portNumber);
+        //properties.put("mail.smtp.port", port);
          /*System.setProperty("mail.smtp.ssl.enable", "true");
            System.setProperty("mail.smtp.auth", "true");
            System.setProperty("mail.smtp.auth.plain.enable", "true");
            System.setProperty("mail.smtp.socketFactory.fallback", "true");*/
 
         try {
-            //socket = (SSLSocket) SSLSocketFactory.getDefault().createSocket(hostName, portNumber);
-            socket = new Socket(hostName, portNumber);
+            //socket = (SSLSocket) SSLSocketFactory.getDefault().createSocket(host, port);
+            socket = new Socket(host, port);
 
             System.out.println("Connected...\n");
 
@@ -60,7 +60,7 @@ public class Client {
     }
 
     /*
-      Method to extract values stored in the config.properties file
+      Method to extract values stored input the config.properties file
      */
     private void getProperties() {
 
@@ -71,10 +71,10 @@ public class Client {
             inputStream = getClass().getClassLoader().getResourceAsStream("config.properties");
             properties.load(inputStream);
 
-            // Get the properties values and store them in the Strings
-            hostName = properties.getProperty("host");
-            portNumber = Integer.parseInt(properties.getProperty("port_smtp"));
-            email = properties.getProperty("user");
+            // Get the properties values and store them input the Strings
+            host = properties.getProperty("host");
+            port = Integer.parseInt(properties.getProperty("port_smtp"));
+            email = properties.getProperty("user_sender");
             password = properties.getProperty("password_sender");
             domain = properties.getProperty("domain");
 
@@ -94,50 +94,50 @@ public class Client {
 
     private void clientService() {
         try {
-            reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            writer = new PrintWriter(socket.getOutputStream(), true);
+            input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            output = new PrintWriter(socket.getOutputStream(), true);
 
-            System.out.println(reader.readLine() + "\n");
+            System.out.println(input.readLine() + "\n");
 
-            send(reader, writer, "HELO  " + hostName);
+            send(input, output, "HELO  " + host);
 
-            send(reader, writer, "EHLO  " + domain);
+            send(input, output, "EHLO  " + domain);
 
-            System.out.println(reader.readLine());
-            System.out.println(reader.readLine());
-            System.out.println(reader.readLine());
+            System.out.println(input.readLine());
+            System.out.println(input.readLine());
+            System.out.println(input.readLine());
 
-            send(reader, writer, "AUTH LOGIN");
+            send(input, output, "AUTH LOGIN");
 
-            send(reader, writer, email);
+            send(input, output, email);
 
-            send(reader, writer, password);
+            send(input, output, password);
 
-            send(reader, writer, "MAIL FROM:" + BuildConfig.SENDER);
+            send(input, output, "MAIL FROM:" + BuildConfig.SENDER);
 
-            send(reader, writer, "RCPT TO:" + BuildConfig.RECIPIENT);
+            send(input, output, "RCPT TO:" + BuildConfig.RECIPIENT);
 
-            send(reader, writer, "DATA");
+            send(input, output, "DATA");
 
-            String message = "Subject: Networks II\n" +
-                    "From: Daria Kalashnikova - " + BuildConfig.SENDER +
-                    "Hi, Check the Project I made for Networks class!\n" +
-                    "Message sent at: " + getMessageSentTime() + "\n";
+            String message = "Date: " + getMessageSentTime()+ "\n" +
+                    "From: Daria Kalashnikova - " + BuildConfig.SENDER + "\n" +
+                    "To: Test User - " + BuildConfig.RECIPIENT + "\n" +
+                    "Subject: Networks II\n\n" +
+                    "Hi, Check the Project I made for Networks class!\n";
 
-            writer.write(message);
+            output.write(message + "\r\n");
             System.out.println(message);
-            //reader.readLine();
 
-            send(reader, writer, ".");
+            send(input, output, ".");
 
-            send(reader, writer, "QUIT");
+            send(input, output, "QUIT");
 
         } catch (Exception e) {
             System.out.println("ERROR: " + e);
         } finally {
             try {
-                reader.close();
-                writer.close();
+                input.close();
+                output.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }

@@ -25,7 +25,8 @@ public class Utils {
 
     public static String getMessageSentTime() {
         String dateAndTime;
-        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        //Thu, 21 May 2008 05:33:29 -0700
+        DateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss ZZZZ");
         Date date = new Date();
 
         dateAndTime = dateFormat.format(date);

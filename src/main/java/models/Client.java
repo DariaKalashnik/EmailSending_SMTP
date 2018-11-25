@@ -1,32 +1,33 @@
+package models;
+
+import utils.BuildConfig;
+
 import java.io.*;
 import java.net.Socket;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Properties;
+
+import static utils.Utils.getMessageSentTime;
+import static utils.Utils.send;
+
 
 public class Client {
 
     private Socket socket;
     private BufferedReader reader;
     private PrintWriter writer;
-    private String hostName;
+    private String hostName, email, password, domain;
     private int portNumber;
-    private String email;
-    private String password;
-    private String domain;
 
     private Client() {
         clientStart();
     }
 
-
     private void clientStart() {
 
         getProperties();
 
-        System.out.println("Server IP: " + hostName);
-        System.out.println("Server port: " + portNumber);
+        System.out.println("models.Server IP: " + hostName);
+        System.out.println("models.Server port: " + portNumber);
         System.out.println("---------------------------------");
 
         //Setting up configurations for the email connection to the Google SMTP server using SSL
@@ -72,9 +73,9 @@ public class Client {
 
             // Get the properties values and store them in the Strings
             hostName = properties.getProperty("host");
-            portNumber = Integer.parseInt(properties.getProperty("port"));
+            portNumber = Integer.parseInt(properties.getProperty("port_smtp"));
             email = properties.getProperty("user");
-            password = properties.getProperty("password");
+            password = properties.getProperty("password_sender");
             domain = properties.getProperty("domain");
 
         } catch (IOException ex) {
@@ -97,7 +98,6 @@ public class Client {
             writer = new PrintWriter(socket.getOutputStream(), true);
 
             System.out.println(reader.readLine() + "\n");
-
 
             send(reader, writer, "HELO  " + hostName);
 
@@ -122,15 +122,15 @@ public class Client {
             String message = "Subject: Networks II\n" +
                     "From: Daria Kalashnikova - " + BuildConfig.SENDER +
                     "Hi, Check the Project I made for Networks class!\n" +
-                    "Message sent at: " + getMessageSentTime() + "\n" +
-                    ".";
+                    "Message sent at: " + getMessageSentTime() + "\n";
 
-            if (message.endsWith("."))
-            send(reader, writer, message);
+            writer.write(message);
+            System.out.println(message);
+            //reader.readLine();
+
+            send(reader, writer, ".");
 
             send(reader, writer, "QUIT");
-
-            socket.close();
 
         } catch (Exception e) {
             System.out.println("ERROR: " + e);
@@ -143,33 +143,6 @@ public class Client {
             }
         }
     }
-
-    private String getMessageSentTime() {
-        String dateAndTime;
-        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-        Date date = new Date();
-
-        dateAndTime = dateFormat.format(date);
-
-        return dateAndTime;
-    }
-
-
-    private void send(BufferedReader in, PrintWriter out, String string) {
-        try {
-            out.write(string + "\r\n");
-            out.flush();
-
-            System.out.println(BuildConfig.CLIENT_ARROW + string + "\r\n");
-
-            string = in.readLine();
-            System.out.println(BuildConfig.SERVER_ARROW + string + "\n");
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
 
     public static void main(String[] args) {
         new Client();

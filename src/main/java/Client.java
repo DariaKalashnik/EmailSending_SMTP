@@ -1,19 +1,20 @@
-import javax.mail.PasswordAuthentication;
-import javax.net.ssl.SSLSocket;
-import javax.net.ssl.SSLSocketFactory;
 import java.io.*;
-import java.net.InetAddress;
+import java.net.Socket;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Properties;
 
 public class Client {
 
-    private SSLSocket socket;
+    //private SSLSocket socket;
+    private Socket socket;
     private BufferedReader reader;
     private PrintWriter writer;
     private String hostName;
     private int portNumber;
-    private String emailPassword;
-
+    private String email;
+    private String password;
 
     private Client() {
         clientStart();
@@ -33,11 +34,13 @@ public class Client {
         //properties.put("mail.smtp.port", portNumber);
 
         try {
-            socket = (SSLSocket) SSLSocketFactory.getDefault().createSocket(hostName, portNumber);
-            System.setProperty("mail.smtp.ssl.enable", "true");
+            //socket = (SSLSocket) SSLSocketFactory.getDefault().createSocket(hostName, portNumber);
+            socket = new Socket(hostName, portNumber);
+            /*System.setProperty("mail.smtp.ssl.enable", "true");
             System.setProperty("mail.smtp.auth", "true");
             System.setProperty("mail.smtp.auth.plain.enable", "true");
-
+            System.setProperty("mail.smtp.socketFactory.fallback", "true");
+*/
             System.out.println("Connected...\n");
 
             clientService();
@@ -70,7 +73,8 @@ public class Client {
             // Get the properties values and store them in the Strings
             hostName = properties.getProperty("host");
             portNumber = Integer.parseInt(properties.getProperty("port"));
-            emailPassword = properties.getProperty("password");
+            email = properties.getProperty("user");
+            password = properties.getProperty("password");
 
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -89,20 +93,65 @@ public class Client {
     private void clientService() {
         try {
             reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            writer = new PrintWriter(socket.getOutputStream());
+            writer = new PrintWriter(socket.getOutputStream(), true);
 
-            send(reader, writer, "EHLO  " + InetAddress.getLocalHost().getHostName());
-            //send(reader, writer,"AUTH LOGIN" + BuildConfig.SENDER + ", " + emailPassword);
-            //send(reader, writer,"AUTH LOGIN ");
-            send(reader, writer, "MAIL FROM:<" + BuildConfig.SENDER + ">");
-            send(reader, writer, "RCPT TO:<" + BuildConfig.RECIPIENT + ">");
+            System.out.println(reader.readLine() + "\n");
+
+
+            send(reader, writer, "HELO  " + hostName);
+
+            send(reader, writer, "EHLO  " + hostName);
+
+            System.out.println(reader.readLine());
+            System.out.println(reader.readLine());
+            System.out.println(reader.readLine());
+
+            send(reader, writer, "AUTH LOGIN");
+
+            send(reader, writer, email);
+
+            send(reader, writer, password);
+
+            send(reader, writer, "MAIL FROM:<daria@network2.hu>");
+
+            send(reader, writer, "RCPT TO:<vivaldiskripkaguy@gmail.com>");
+
             send(reader, writer, "DATA");
-            //TODO: add date
-            send(reader, writer, "Subject: Networks II");
-            send(reader, writer, "From: Daria Kalashnikova - " + BuildConfig.SENDER);
-            send(reader, writer, "Hi, Check the Project I made for Networks class!");
-            send(reader, writer, "\n.\n");
+
+            //Scanner sc = new Scanner(System.in);
+
+            //System.out.println("Please enter Email subject and body");
+
+            String message = "Hi";
+            writer.write(message + "\r\n");
+            writer.flush();
+
+            System.out.println(BuildConfig.CLIENT_ARROW + message + "\r\n");
+
+            send(reader, writer, ".");
+
+           /* while (true) {
+                String userInput = sc.nextLine();
+
+                if (userInput.equals(".")) {
+                    break;
+                }
+
+                writer.println(userInput);
+            }*/
+
+
             send(reader, writer, "QUIT");
+
+           /* send(reader, writer, "Subject: Networks II");
+
+            send(reader, writer, "From: Daria Kalashnikova - " + BuildConfig.SENDER);
+
+            send(reader, writer, "Hi, Check the Project I made for Networks class!");
+
+            send(reader, writer, "Message sent at: " + getMessageSentTime());
+*/
+
 
         } catch (Exception e) {
             System.out.println("ERROR: " + e);
@@ -114,15 +163,25 @@ public class Client {
                 e.printStackTrace();
             }
         }
-
     }
+
+    private String getMessageSentTime() {
+        String dateAndTime;
+        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        Date date = new Date();
+
+        dateAndTime = dateFormat.format(date);
+
+        return dateAndTime;
+    }
+
 
     private void send(BufferedReader in, PrintWriter out, String string) {
         try {
-            out.write(string + "\n");
+            out.write(string + "\r\n");
             out.flush();
 
-            System.out.println(BuildConfig.CLIENT_ARROW + string + "\n");
+            System.out.println(BuildConfig.CLIENT_ARROW + string + "\r\n");
 
             string = in.readLine();
             System.out.println(BuildConfig.SERVER_ARROW + string + "\n");
@@ -132,64 +191,9 @@ public class Client {
         }
     }
 
-/*    private class Authenticator extends javax.mail.Authenticator {
-        private PasswordAuthentication authentication;
-        public Authenticator() {
-            authentication = new PasswordAuthentication(BuildConfig.SENDER, emailPassword);
-        }
-        protected PasswordAuthentication getPasswordAuthentication() {
-            return authentication;
-        }
-    }*/
-
-/*    private void sendEmail(){
-
-        String from = BuildConfig.SENDER;
-        String pass = BuildConfig.EMAIL_PASSWORD;
-        String to = BuildConfig.RECIPIENT;
-
-        // Get system properties
-        Properties properties = System.getProperties();
-        // Setup mail server
-        properties.put("mail.smtp.starttls.enable", true);
-        properties.put("mail.smtp.host", BuildConfig.HOST);
-        properties.put("mail.smtp.user", from);
-        properties.put("mail.smtp.password", pass);
-        properties.put("mail.smtp.port", BuildConfig.PORT);
-        properties.put("mail.smtp.auth", true);
-
-        // Get the default Session object.
-        Session session = Session.getDefaultInstance(properties);
-
-        try{
-            // Create a default MimeMessage object.
-            MimeMessage message = new MimeMessage(session);
-
-            // Set From: header field of the header.
-            message.setFrom(new InternetAddress(from));
-
-            // Set To: header field of the header.
-            message.addRecipient(Message.RecipientType.TO,
-                    new InternetAddress(to));
-
-            // Set Subject: header field
-            message.setSubject("This is the Subject Line!");
-
-            // Now set the actual message
-            message.setText("This is actual message");
-
-            // Send message
-            Transport transport = session.getTransport("smtp");
-            transport.connect(BuildConfig.HOST, from, pass);
-            transport.sendMessage(message, message.getAllRecipients());
-            transport.close();
-            System.out.println("Sent message successfully....");
-        }catch (MessagingException mex) {
-            mex.printStackTrace();
-        }
-    }*/
 
     public static void main(String[] args) {
+
         new Client();
     }
 }

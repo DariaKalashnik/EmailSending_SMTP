@@ -122,13 +122,11 @@ public class Client {
             String message = "Subject: Networks II\n" +
                     "From: Daria Kalashnikova - " + BuildConfig.SENDER +
                     "Hi, Check the Project I made for Networks class!\n" +
-                    "Message sent at: " + getMessageSentTime();
+                    "Message sent at: " + getMessageSentTime() + "\n" +
+                    ".";
 
-
-            writer.write(message);
-            System.out.println(message);
-
-            send(reader, writer, ".");
+            if (message.endsWith("."))
+            send(reader, writer, message);
 
             send(reader, writer, "QUIT");
 

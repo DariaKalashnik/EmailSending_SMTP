@@ -108,21 +108,38 @@ public class Server {
             send(input, output, "STAT");
 
             send(input, output, "RETR 1");
-            //System.out.println(input.read);
 
-            String line;
-            TimeLimiter timeLimiter = new SimpleTimeLimiter();
+            //String line;
+            //TimeLimiter timeLimiter = new SimpleTimeLimiter();
 
-            try {
+    /*        try {
                 while ((line = timeLimiter.callWithTimeout(input::readLine, 2, TimeUnit.SECONDS, false)) != null) {
-                    if (line.isEmpty()) {
+                    if (line.charAt (0) == '.') {
                         break;
                     }
+                    input.readLine();
                     System.out.println(line+"\r\n");
                 }
             } catch (UncheckedTimeoutException e) {
-                //System.out.println("End of email.");
-            }
+                System.out.println("End of email reading.");
+            }*/
+
+            String reply;
+
+                do
+                {
+                    reply = input.readLine();
+                    System.out.println ("S:" + reply);
+                    if (reply != null && reply.length () > 0)
+                        if (reply.charAt (0) == '.')
+                            break;
+                }
+                while (true);
+
+
+            /*send(input, output, "DELE 1");
+
+            send(input, output, "RSET");*/
 
             send(input, output, "QUIT");
 

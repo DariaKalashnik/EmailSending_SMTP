@@ -95,8 +95,7 @@ public class Client {
             String serverReply;
 
             do {
-                if ((serverReply = input.readLine()) != null
-                        && serverReply.length() > 0)
+                if ((serverReply = input.readLine()) != null && serverReply.length() > 0)
                     System.out.println(serverReply);
 
             } while (!(serverReply != null && serverReply.endsWith("HELP")));

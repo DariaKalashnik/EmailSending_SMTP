@@ -28,16 +28,7 @@ public class Client {
         System.out.println("Reader port: " + port);
         System.out.println("---------------------------------");
 
-        //Setting up configurations for the email connection to the Google SMTP server using SSL
-        //properties.put("mail.smtp.host", "smtp.gmail.com");
-        //properties.put("mail.smtp.port", port);
-         /*System.setProperty("mail.smtp.ssl.enable", "true");
-           System.setProperty("mail.smtp.auth", "true");
-           System.setProperty("mail.smtp.auth.plain.enable", "true");
-           System.setProperty("mail.smtp.socketFactory.fallback", "true");*/
-
         try {
-            //socket = (SSLSocket) SSLSocketFactory.getDefault().createSocket(host, port);
             socket = new Socket(host, port);
 
             System.out.println("Connected...\n");
@@ -101,9 +92,15 @@ public class Client {
 
             send(input, output, "EHLO  " + domain);
 
-            System.out.println(input.readLine());
-            System.out.println(input.readLine());
-            System.out.println(input.readLine());
+            String serverReply;
+
+            do {
+                if ((serverReply = input.readLine()) != null
+                        && serverReply.length() > 0)
+                    System.out.println(serverReply);
+
+            } while (!(serverReply != null && serverReply.endsWith("HELP")));
+
 
             send(input, output, "AUTH LOGIN");
 

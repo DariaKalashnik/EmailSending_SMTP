@@ -1,5 +1,3 @@
-package models;
-
 import utils.BuildConfig;
 
 import java.io.*;
@@ -26,8 +24,8 @@ public class Client {
 
         getProperties();
 
-        System.out.println("models.Server IP: " + host);
-        System.out.println("models.Server port: " + port);
+        System.out.println("Reader IP: " + host);
+        System.out.println("Reader port: " + port);
         System.out.println("---------------------------------");
 
         //Setting up configurations for the email connection to the Google SMTP server using SSL
@@ -119,11 +117,15 @@ public class Client {
 
             send(input, output, "DATA");
 
-            String message = "Date: " + getMessageSentTime()+ "\n" +
-                    "From: Daria Kalashnikova - " + BuildConfig.SENDER + "\n" +
-                    "To: Test User - " + BuildConfig.RECIPIENT + "\n" +
-                    "Subject: Networks II\n\n" +
-                    "Hi, Check the Project I made for Networks class!\n";
+            // Construct the information and body of the builder with StringBuilder
+            StringBuilder builder = new StringBuilder();
+            builder.append("Subject: Networks II").append("\r\n.");
+            builder.append("From: Daria Kalashnikova ").append(BuildConfig.SENDER).append("\r\n");
+            builder.append("To: Test User ").append(BuildConfig.RECIPIENT).append("\r\n");
+            builder.append("Date: ").append(getMessageSentTime()).append("\r\n\n");
+            builder.append("Hi, Check the Project I made for Networks class!\n");
+
+            String message = builder.toString();
 
             output.write(message + "\r\n");
             System.out.println(message);

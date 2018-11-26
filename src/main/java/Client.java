@@ -1,6 +1,8 @@
 import javax.mail.PasswordAuthentication;
+import javax.mail.Session;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
+import java.awt.*;
 import java.io.*;
 import java.net.InetAddress;
 import java.text.DateFormat;
@@ -9,6 +11,8 @@ import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Properties;
+
+import static javax.xml.crypto.dsig.Transform.BASE64;
 
 public class Client {
 
@@ -38,10 +42,13 @@ public class Client {
         //properties.put("mail.smtp.port", portNumber);
 
         try {
-            socket = (SSLSocket) SSLSocketFactory.getDefault().createSocket(hostName, portNumber);
             System.setProperty("mail.smtp.ssl.enable", "true");
             System.setProperty("mail.smtp.auth", "true");
-            System.setProperty("mail.smtp.auth.plain.enable", "true");
+            System.setProperty("mail.smtp.starttls.enable","true");
+
+            socket = (SSLSocket) SSLSocketFactory.getDefault().createSocket(hostName, portNumber);
+            //System.setProperty("mail.smtp.auth.mechanisms", "CRAM-MD5");
+            //System.setProperty("mail.smtp.sasl.enable", "true");
 
             System.out.println("Connected...\n");
 
@@ -96,10 +103,28 @@ public class Client {
             reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             writer = new PrintWriter(socket.getOutputStream());
 
-            send(reader, writer, "EHLO  " + InetAddress.getLocalHost().getHostName());
+            send(reader, writer, "EHLO " + InetAddress.getLocalHost().getHostName());
             //send(reader, writer,"AUTH LOGIN" + BuildConfig.SENDER + ", " + emailPassword);
-            //send(reader, writer,"AUTH LOGIN ");
+            //send(reader, writer,"AUTH CRAM-MD5");
+            //send(reader, writer,"AUTH PLAIN " + BuildConfig.SENDER + emailPassword + "=*");
+
+
+            Properties props = new Properties();
+            props.put("mail.smtp.auth", "true");
+            props.put("mail.smtp.starttls.enable", "true");
+            props.put("mail.smtp.host", hostName);
+            props.put("mail.smtp.port", portNumber);
+
+            Session.getInstance(props,
+                    new javax.mail.Authenticator() {
+                        protected PasswordAuthentication getPasswordAuthentication() {
+                            return new PasswordAuthentication(BuildConfig.SENDER, emailPassword);
+                        }
+                    });
+
+
             send(reader, writer, "MAIL FROM:<" + BuildConfig.SENDER + ">");
+
             send(reader, writer, "RCPT TO:<" + BuildConfig.RECIPIENT + ">");
             send(reader, writer, "DATA");
 
@@ -148,15 +173,7 @@ public class Client {
         }
     }
 
-/*    private class Authenticator extends javax.mail.Authenticator {
-        private PasswordAuthentication authentication;
-        public Authenticator() {
-            authentication = new PasswordAuthentication(BuildConfig.SENDER, emailPassword);
-        }
-        protected PasswordAuthentication getPasswordAuthentication() {
-            return authentication;
-        }
-    }*/
+
 
 /*    private void sendEmail(){
 

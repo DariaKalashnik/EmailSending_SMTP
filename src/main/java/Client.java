@@ -107,9 +107,9 @@ public class Client {
 
             send(input, output, password);
 
-            send(input, output, "MAIL FROM:" + BuildConfig.SENDER);
+            send(input, output, "MAIL FROM:<" + BuildConfig.SENDER + ">");
 
-            send(input, output, "RCPT TO:" + BuildConfig.RECIPIENT);
+            send(input, output, "RCPT TO:<" + BuildConfig.RECIPIENT + ">");
 
             send(input, output, "DATA");
 
